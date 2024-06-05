@@ -1,4 +1,6 @@
 module.exports = {
-  jwtSecretKey: 'Doraemon daisuki',
-  jwtExpiresIn: '7d'
+  accessTokenSecretKey: 'Doraemon daisuki',
+  refreshTokenSecretKey: 'Momo daisuki',
+  accessTokenExpiresIn: '1h',
+  refreshTokenExpiresIn: '7d'
 }

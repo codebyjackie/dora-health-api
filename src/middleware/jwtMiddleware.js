@@ -1,8 +1,8 @@
 const { expressjwt } = require('express-jwt')
-const config = require('../config/jwt')
+const jwtConfig = require('../config/jwt')
 
 const jwtMiddleware = expressjwt({
-  secret: config.jwtSecretKey,
+  secret: jwtConfig.accessTokenSecretKey,
   algorithms: ['HS256']
 }).unless({
   path: [/^\/api\//]

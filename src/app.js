@@ -2,33 +2,35 @@ const express = require('express')
 const cors = require('cors')
 const responseHandler = require('./middleware/responseHandler')
 const jwtMiddleware = require('./middleware/jwtMiddleware')
-const userRouter = require('./routes/auth')
+const authRoutes = require('./routes/auth')
 const errorHandler = require('./middleware/errorHandler')
 
 const app = express()
 const port = 3000
 const host = '192.168.36.46'
 
-// Enable CORS
+// Enable Cross-Origin Resource Sharing (CORS) for all routes
 app.use(cors())
 
-// Custom response handler middleware
+// Custom middleware to handle API responses
 app.use(responseHandler)
 
-// Parse application/x-www-form-urlencoded and JSON
+// Middleware to parse URL-encoded data with the querystring library
 app.use(express.urlencoded({ extended: false }))
+
+// Middleware to parse incoming JSON requests
 app.use(express.json())
 
-// JWT authentication middleware
+// JWT middleware to protect routes and validate tokens
 app.use(jwtMiddleware)
 
-// User API router
-app.use('/api', userRouter)
+// Routes for login, registration, and refreshing tokens
+app.use('/api', authRoutes)
 
-// Global error handling middleware
+// Custom middleware to handle errors
 app.use(errorHandler)
 
-// Start the server
+// Start the server and listen on the specified host and port
 app.listen(port, host, () => {
   console.log('api server running at http://192.168.36.46:3000')
 })

@@ -1,8 +1,13 @@
 const jsonwebtoken = require('jsonwebtoken')
-const config = require('../config/jwt')
+const jwtConfig = require('../config/jwt')
 const Auth = require('../models/authModel')
 
-// User registration
+/**
+ * This function handles the user registration process.
+ * It checks if the provided email already exists in the database, encrypts the password,
+ * stores the new user's information in the database, and returns an appropriate response.
+ */
+
 exports.register = (req, res) => {
   const userInfo = req.body
 
@@ -39,6 +44,13 @@ exports.register = (req, res) => {
   })
 }
 
+/**
+ * This function handles the user login process.
+ * It checks if the provided email exists in the database, verifies the password,
+ * generates a JWT token and a refresh token if necessary, and returns the tokens
+ * along with the user's avatar to the client.
+ */
+
 exports.login = (req, res) => {
   const userInfo = req.body
 
@@ -50,7 +62,7 @@ exports.login = (req, res) => {
     }
     if (results.length !== 1) {
       // Send an unauthorized error response if the email is not found
-      return res.sendResponse(401, 1, 'Login failed')
+      return res.sendResponse(401, 1, 'Email not found')
     }
 
     // Check if the provided password matches the stored password
@@ -61,7 +73,7 @@ exports.login = (req, res) => {
     )
     if (!passwordIsValid) {
       // Send an unauthorized error response if the password is incorrect
-      return res.sendResponse(401, 1, 'Login failed')
+      return res.sendResponse(401, 1, 'Incorrect password')
     }
 
     // Create a token payload without including the password
@@ -71,11 +83,106 @@ exports.login = (req, res) => {
     }
 
     // Generate a JWT token with the payload and the secret key
-    const token = jsonwebtoken.sign(tokenPayload, config.jwtSecretKey, {
-      expiresIn: config.jwtExpiresIn
-    })
+    const token = jsonwebtoken.sign(
+      tokenPayload,
+      jwtConfig.accessTokenSecretKey,
+      {
+        expiresIn: jwtConfig.accessTokenExpiresIn
+      }
+    )
 
-    // Send a success response with the token and user avatar
-    res.sendResponse(200, 0, 'Login successful', { token, avatar: user.avatar })
+    // Check if a refresh token already exists for the user
+    let refreshToken = user.refresh_token
+    if (!refreshToken) {
+      // Generate a new refresh token if one does not exist
+      refreshToken = jsonwebtoken.sign(
+        tokenPayload,
+        jwtConfig.refreshTokenSecretKey,
+        {
+          expiresIn: jwtConfig.refreshTokenExpiresIn
+        }
+      )
+
+      // Update the user's refresh token in the database
+      Auth.updateRefreshToken(user.id, refreshToken, (err) => {
+        if (err) {
+          // Send a server error response if there's an issue with updating the database
+          return res.sendResponse(500, 1, err.message)
+        }
+
+        // Send a success response with the token, refresh token, and user avatar
+        res.sendResponse(200, 0, 'Login successful', {
+          token,
+          refreshToken,
+          avatar: user.avatar
+        })
+      })
+    } else {
+      // Send a success response with the token and user avatar
+      res.sendResponse(200, 0, 'Login successful', {
+        token,
+        refreshToken,
+        avatar: user.avatar
+      })
+    }
+  })
+}
+
+/**
+ * This function handles the refresh token process.
+ * It verifies the provided refresh token, checks its validity in the database,
+ * and generates a new access token if the refresh token is valid.
+ * The new access token is then returned to the client.
+ */
+
+exports.refreshToken = (req, res) => {
+  const { refreshToken } = req.body
+
+  // Check if refresh token is provided in the request body
+  if (!refreshToken) {
+    return res
+      .status(400)
+      .json({ code: 1, message: 'Refresh token is required' })
+  }
+
+  // Verify the refresh token
+  jsonwebtoken.verify(refreshToken, jwtConfig.refreshTokenSecretKey, (err) => {
+    if (err) {
+      return res.status(401).json({ code: 1, message: 'Invalid refresh token' })
+    }
+
+    // Find the refresh token in the database
+    Auth.findByRefreshToken(refreshToken, (err, results) => {
+      if (err) {
+        return res.status(500).json({ code: 1, message: err.message })
+      }
+      if (results.length !== 1) {
+        return res
+          .status(401)
+          .json({ code: 1, message: 'Invalid refresh token' })
+      }
+
+      const user = results[0]
+      const tokenPayload = {
+        id: user.id,
+        email: user.email
+      }
+
+      // Create a new access token
+      const newToken = jsonwebtoken.sign(
+        tokenPayload,
+        jwtConfig.accessTokenSecretKey,
+        {
+          expiresIn: jwtConfig.accessTokenExpiresIn
+        }
+      )
+
+      // Send the new token to the client
+      res.status(200).json({
+        code: 0,
+        message: 'Token refreshed',
+        data: { token: newToken }
+      })
+    })
   })
 }
