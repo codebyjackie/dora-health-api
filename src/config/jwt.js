@@ -1,6 +1,6 @@
 module.exports = {
   accessTokenSecretKey: 'Doraemon daisuki',
   refreshTokenSecretKey: 'Momo daisuki',
-  accessTokenExpiresIn: '1h',
+  accessTokenExpiresIn: '30m',
   refreshTokenExpiresIn: '7d'
 }

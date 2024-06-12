@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const cookieParser = require('cookie-parser')
 const responseHandler = require('./middleware/responseHandler')
 const jwtMiddleware = require('./middleware/jwtMiddleware')
 const authRoutes = require('./routes/auth')
@@ -9,8 +10,16 @@ const app = express()
 const port = 3000
 const host = '192.168.36.46'
 
+// Middleware to parse cookies
+app.use(cookieParser())
+
+const corsOptions = {
+  origin: `http://${host}:8080`, // The address of the front-end application
+  credentials: true // Allow sending and receiving cookies
+}
+
 // Enable Cross-Origin Resource Sharing (CORS) for all routes
-app.use(cors())
+app.use(cors(corsOptions))
 
 // Custom middleware to handle API responses
 app.use(responseHandler)
@@ -32,5 +41,5 @@ app.use(errorHandler)
 
 // Start the server and listen on the specified host and port
 app.listen(port, host, () => {
-  console.log('api server running at http://192.168.36.46:3000')
+  console.log(`api server running at http://${host}:${port}`)
 })

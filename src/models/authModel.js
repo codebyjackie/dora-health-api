@@ -1,5 +1,4 @@
 const db = require('../config/db')
-const bcrypt = require('bcryptjs')
 
 // Find a user by their email address
 exports.findByEmail = (email, callback) => {
@@ -17,16 +16,6 @@ exports.createUser = (userInfo, callback) => {
     if (err) return callback(err)
     callback(null, results)
   })
-}
-
-// Hash a plaintext password using bcrypt
-exports.hashPassword = (password) => {
-  return bcrypt.hashSync(password, 10)
-}
-
-// Compare an input password with the stored hashed password
-exports.comparePassword = (inputPassword, storedPassword) => {
-  return bcrypt.compareSync(inputPassword, storedPassword)
 }
 
 // Update the refresh token for a user with the given user ID
