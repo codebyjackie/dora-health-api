@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser')
 const responseHandler = require('./middleware/responseHandler')
 const jwtMiddleware = require('./middleware/jwtMiddleware')
 const authRoutes = require('./routes/auth')
+const userRoutes = require('./routes/user')
 const errorHandler = require('./middleware/errorHandler')
 
 const app = express()
@@ -35,6 +36,8 @@ app.use(jwtMiddleware)
 
 // Routes for login, registration, and refreshing tokens
 app.use('/api', authRoutes)
+
+app.use('/users', userRoutes)
 
 // Custom middleware to handle errors
 app.use(errorHandler)
