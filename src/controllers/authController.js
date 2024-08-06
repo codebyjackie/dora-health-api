@@ -1,16 +1,12 @@
 const jsonwebtoken = require('jsonwebtoken')
 const jwtConfig = require('../config/jwt')
-const authService = require('../services/authService')
+const AuthService = require('../services/authService')
 
-/**
- * This function handles the user registration process.
- * It checks if the provided email already exists in the database, encrypts the password,
- * stores the new user's information in the database, and returns an appropriate response.
- */
+// Handle user registration process
 exports.register = (req, res) => {
   const userInfo = req.body
 
-  authService.registerUser(userInfo, (err, results) => {
+  AuthService.registerUser(userInfo, (err, results) => {
     if (err) {
       if (err.message === 'Email already exists') {
         return res.sendResponse(409, 1, err.message)
@@ -26,16 +22,11 @@ exports.register = (req, res) => {
   })
 }
 
-/**
- * This function handles the user login process.
- * It checks if the provided email exists in the database, verifies the password,
- * generates a JWT token and a refresh token if necessary, and returns the tokens
- * along with the user's avatar to the client.
- */
+// Handle user login process
 exports.login = (req, res) => {
   const userInfo = req.body
 
-  authService.loginUser(userInfo, (err, user) => {
+  AuthService.loginUser(userInfo, (err, user) => {
     if (err) {
       if (
         err.message === 'Email not found' ||
@@ -78,7 +69,7 @@ exports.login = (req, res) => {
         }
       )
 
-      authService.updateRefreshToken(user.id, refreshToken, (err) => {
+      AuthService.updateRefreshToken(user.id, refreshToken, (err) => {
         if (err) {
           return res.sendResponse(500, 1, err.message)
         }
@@ -109,12 +100,7 @@ exports.login = (req, res) => {
   })
 }
 
-/**
- * This function handles the refresh token process.
- * It verifies the provided refresh token from the cookie, checks its validity in the database,
- * and generates a new access token if the refresh token is valid.
- * The new access token is then returned to the client.
- */
+// Handle refresh token process
 exports.refreshToken = (req, res) => {
   const refreshToken = req.cookies.refreshToken
 
@@ -127,7 +113,7 @@ exports.refreshToken = (req, res) => {
       return res.sendResponse(401, 1, 'Login expired')
     }
 
-    authService.findByRefreshToken(refreshToken, (err, results) => {
+    AuthService.findByRefreshToken(refreshToken, (err, results) => {
       if (err) {
         return res.sendResponse(500, 1, err.message)
       }

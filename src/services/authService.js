@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs')
-const authModel = require('../models/authModel')
+const AuthModel = require('../models/authModel')
 
 // Hash a plaintext password using bcrypt
 exports.hashPassword = (password) => {
@@ -13,7 +13,7 @@ exports.comparePassword = (inputPassword, storedPassword) => {
 
 // Register a new user
 exports.registerUser = (userInfo, callback) => {
-  authModel.findByEmail(userInfo.email, (err, results) => {
+  AuthModel.findByEmail(userInfo.email, (err, results) => {
     if (err) return callback(err)
 
     if (results.length > 0) {
@@ -21,7 +21,7 @@ exports.registerUser = (userInfo, callback) => {
     }
 
     userInfo.password = exports.hashPassword(userInfo.password)
-    authModel.createUser(
+    AuthModel.createUser(
       { email: userInfo.email, password: userInfo.password },
       callback
     )
@@ -30,7 +30,7 @@ exports.registerUser = (userInfo, callback) => {
 
 // Login a user
 exports.loginUser = (userInfo, callback) => {
-  authModel.findByEmail(userInfo.email, (err, results) => {
+  AuthModel.findByEmail(userInfo.email, (err, results) => {
     if (err) return callback(err)
 
     if (results.length !== 1) {
@@ -52,10 +52,10 @@ exports.loginUser = (userInfo, callback) => {
 
 // Update refresh token
 exports.updateRefreshToken = (userId, refreshToken, callback) => {
-  authModel.updateRefreshToken(userId, refreshToken, callback)
+  AuthModel.updateRefreshToken(userId, refreshToken, callback)
 }
 
 // Find user by refresh token
 exports.findByRefreshToken = (refreshToken, callback) => {
-  authModel.findByRefreshToken(refreshToken, callback)
+  AuthModel.findByRefreshToken(refreshToken, callback)
 }

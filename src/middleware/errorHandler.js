@@ -22,7 +22,7 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Other types of errors
-  return res.sendResponse(500, 1, 'Internal Server Error')
+  return res.sendResponse(500, 1, 'Internal server error')
 }
 
 module.exports = errorHandler
